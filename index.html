@@ -6,695 +6,551 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TimeLog">
-<meta name="theme-color" content="#0f0f1a">
+<meta name="theme-color" content="#f5f4f0" id="themeColorMeta">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>Time Log</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #0f0f1a;
-  --surface: #181826;
-  --card: #1e1e30;
-  --border: #2a2a42;
-  --accent: #c8f55a;
-  --accent-dim: #8ab53a;
-  --accent2: #5af5c8;
-  --text: #eeeef8;
-  --muted: #5c5c7a;
-  --danger: #f55a7a;
-  --safe: inset 0 env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-html, body {
-  height: 100%;
-  overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'DM Mono', monospace;
-}
-
-/* ── App Shell ── */
-#app {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  height: 100vh;
-}
-
-/* ── Scrollable content ── */
-#scroll-area {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(32px + env(safe-area-inset-bottom));
-}
-
-/* ── Header ── */
-.app-header {
-  padding: 16px 20px 8px;
-  padding-top: calc(16px + env(safe-area-inset-top));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.app-header h1 {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--accent);
-  letter-spacing: -0.5px;
-  text-transform: uppercase;
-}
-
-.header-sub {
-  font-size: 0.6rem;
-  color: var(--muted);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-/* ── Calendar ── */
-.cal-section {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 20px;
-}
-
-.cal-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-
-.cal-month {
-  font-family: 'Syne', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: 0.04em;
-}
-
-.cal-nav-btn {
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: color 0.15s;
-}
-.cal-nav-btn:active { color: var(--accent); }
-
-.cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
-}
-
-.cal-day-label {
-  text-align: center;
-  font-size: 0.6rem;
-  color: var(--muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding-bottom: 6px;
-}
-
-.cal-day {
-  aspect-ratio: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  cursor: pointer;
-  position: relative;
-  padding: 2px;
-  transition: background 0.12s;
-}
-
-.cal-day:active { background: var(--card); }
-
-.cal-day.empty { pointer-events: none; }
-
-.cal-day .day-num {
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1;
-}
-
-.cal-day .day-hrs {
-  font-size: 0.52rem;
-  color: var(--accent-dim);
-  margin-top: 2px;
-  letter-spacing: 0.02em;
-}
-
-.cal-day.today .day-num {
-  color: var(--bg);
-  background: var(--accent);
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cal-day.selected {
-  background: var(--card);
-  border: 1px solid var(--border);
-}
-
-.cal-day.has-entry .day-hrs { color: var(--accent); }
-
-.cal-day.other-month .day-num { color: var(--border); }
-
-/* ── Entry Form ── */
-.form-section {
-  padding: 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.form-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-bottom: 14px;
-}
-
-.selected-date-label {
-  font-size: 0.82rem;
-  color: var(--accent2);
-  margin-bottom: 16px;
-  font-weight: 500;
-}
-
-.time-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.field-group label {
-  display: block;
-  font-size: 0.6rem;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-bottom: 5px;
-}
-
-input[type="time"] {
-  width: 100%;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text);
-  font-family: 'DM Mono', monospace;
-  font-size: 1.05rem;
-  padding: 12px 12px;
-  outline: none;
-  transition: border-color 0.2s;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-input[type="time"]:focus { border-color: var(--accent); }
-
-.result-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-bottom: 14px;
-}
-
-.result-row .rl { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
-.result-row .rv { font-size: 1.1rem; color: var(--accent2); font-weight: 500; }
-
-.btn-save {
-  width: 100%;
-  padding: 14px;
-  background: var(--accent);
-  color: #0a0a10;
-  font-family: 'Syne', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
-}
-.btn-save:active { opacity: 0.85; transform: scale(0.98); }
-.btn-save.saved {
-  background: var(--card);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-}
-
-/* ── Log List ── */
-.log-section {
-  padding: 20px;
-}
-
-.log-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 14px;
-}
-
-.log-header-row h2 {
-  font-family: 'Syne', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.week-total {
-  font-size: 0.7rem;
-  color: var(--accent);
-  letter-spacing: 0.04em;
-}
-
-.log-empty {
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.72rem;
-  padding: 24px 0;
-  letter-spacing: 0.05em;
-}
-
-.log-item {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 13px 16px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  animation: fadeUp 0.22s ease;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.log-item .li-date { font-size: 0.82rem; font-weight: 500; color: var(--text); }
-.log-item .li-times { font-size: 0.62rem; color: var(--muted); margin-top: 2px; letter-spacing: 0.03em; }
-.log-item .li-hours { font-size: 1.1rem; color: var(--accent); font-weight: 500; text-align: right; }
-.log-item .li-hrs-lbl { font-size: 0.58rem; color: var(--muted); text-align: right; letter-spacing: 0.08em; text-transform: uppercase; }
-
-.btn-del {
-  background: none;
-  border: none;
-  color: var(--danger);
-  font-size: 0.75rem;
-  cursor: pointer;
-  padding: 4px 6px;
-  margin-left: 10px;
-  opacity: 0.4;
-  transition: opacity 0.15s;
-}
-.btn-del:active { opacity: 1; }
-
-/* iOS install banner */
-.install-hint {
-  margin: 0 20px 12px;
-  padding: 12px 14px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.65rem;
-  color: var(--muted);
-  letter-spacing: 0.03em;
-  line-height: 1.5;
-}
-.install-hint .hint-icon { font-size: 1.1rem; flex-shrink: 0; }
-.install-hint .hint-close {
-  margin-left: auto;
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 0.75rem;
-  cursor: pointer;
-  padding: 2px 4px;
-}
-</style>
+<link rel="apple-touch-icon" href="TimeLog.png">
+<title>TimeLog</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <div id="app">
-  <!-- Header -->
-  <div class="app-header">
-    <div>
-      <h1>⏱ Time Log</h1>
-    </div>
-    <div class="header-sub" id="totalThisMonth"></div>
+
+<!-- LOGIN -->
+<div class="screen" id="screen-login">
+  <div class="login-hero">
+    <div class="app-icon">⏱</div>
+    <h1>TimeLog</h1>
+    <p>Work hours &amp; earnings tracker · JPY</p>
   </div>
-
-  <!-- Scrollable content -->
-  <div id="scroll-area">
-
-    <!-- iOS install hint -->
-    <div class="install-hint" id="installHint" style="display:none;margin-top:12px;">
-      <span class="hint-icon">📲</span>
-      <span>Tap <strong>Share</strong> → <strong>Add to Home Screen</strong> to install this app on your iPhone.</span>
-      <button class="hint-close" onclick="dismissHint()">✕</button>
+  <div class="screen-scroll">
+    <div class="profiles-section">
+      <div class="profiles-label">Select Profile</div>
+      <div class="profiles-grid" id="profilesGrid"></div>
     </div>
+  </div>
+</div>
 
-    <!-- Calendar -->
-    <div class="cal-section">
+<!-- ONBOARDING -->
+<div class="screen" id="screen-onboard">
+  <div class="screen-header">
+    <h1>New Profile</h1>
+    <button class="back-btn" onclick="showScreen('login'); renderLogin();">Cancel</button>
+  </div>
+  <div class="screen-scroll">
+    <div class="onboard-pad">
+      <h2>Let's get started</h2>
+      <p class="sub">Set up your work profile. Your mode is permanent.</p>
+      <div class="field">
+        <label>Your Name</label>
+        <input type="text" id="onboardName" placeholder="e.g. Kari" maxlength="20">
+      </div>
+      <div class="section-title">Work Mode</div>
+      <div class="mode-cards">
+        <div class="mode-card selected" data-mode="monthly">
+          <div class="mode-icon mode-icon-monthly">📅</div>
+          <div><h3>Monthly Salary</h3><p>Fixed base salary + OT tracked after threshold daily.</p></div>
+        </div>
+        <div class="mode-card" data-mode="hourly">
+          <div class="mode-icon mode-icon-hourly">⏱</div>
+          <div><h3>Hourly Pay</h3><p>Every hour counts. OT kicks in after your set threshold.</p></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Profile Color</label>
+        <div class="color-dots" id="onboardColorDots"></div>
+      </div>
+      <button class="btn-primary" onclick="submitOnboard()">Create Profile →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOME — 2×2 tiles -->
+<div class="screen" id="screen-home">
+  <div class="home-header">
+    <div class="home-avatar" id="homeProfileInitial">K</div>
+    <div>
+      <div class="home-name" id="homeProfileName">Name</div>
+      <div class="home-mode badge-monthly" id="homeModeBadge">📅 Monthly</div>
+    </div>
+    <button class="home-signout" onclick="showScreen('login'); renderLogin();">↩ Switch</button>
+  </div>
+  <div class="home-scroll">
+    <div class="home-grid">
+      <div class="home-tile tile-calendar" onclick="showScreen('calendar'); renderCalendar();">
+        <div class="tile-icon">📅</div>
+        <div class="tile-label">Calendar</div>
+        <div class="tile-info" id="calTileMonth">—</div>
+        <div class="tile-sub">Tap to browse</div>
+      </div>
+      <div class="home-tile tile-today" onclick="selectedDate=todayStr(); showScreen('calendar'); renderCalendar(); openLogEntry(todayStr());">
+        <div class="tile-icon">✏️</div>
+        <div class="tile-label">Today</div>
+        <div class="tile-info" id="todayTileInfo">Log today</div>
+        <div class="tile-sub">Quick entry</div>
+      </div>
+      <div class="home-tile tile-earnings" onclick="showScreen('earnings'); renderEarnings();">
+        <div class="tile-icon">💴</div>
+        <div class="tile-label">Gross</div>
+        <div class="tile-info" id="earningsTileInfo">¥0</div>
+        <div class="tile-sub" id="earningsTileSub">This month</div>
+      </div>
+      <div class="home-tile tile-payslip" onclick="showScreen('deductions'); renderDeductions();">
+        <div class="tile-icon">📊</div>
+        <div class="tile-label">Payslip</div>
+        <div class="tile-info" id="dedTileInfo">Not set</div>
+        <div class="tile-sub" id="dedTileSub">This month</div>
+      </div>
+    </div>
+    <!-- Settings link below grid -->
+    <div class="home-settings-row" onclick="showScreen('settings'); renderSettings();">
+      <span>⚙️ Settings — Theme &amp; Profile</span>
+      <span class="settings-row-arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- CALENDAR -->
+<div class="screen" id="screen-calendar">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('home'); renderHome();">← Home</button>
+    <h1>Calendar</h1>
+    <div style="width:60px"></div>
+  </div>
+  <div class="screen-scroll">
+    <div class="cal-pad">
       <div class="cal-nav">
         <button class="cal-nav-btn" onclick="shiftMonth(-1)">‹</button>
-        <div class="cal-month" id="calMonthLabel"></div>
+        <div class="cal-month-label" id="calMonthLabel"></div>
         <button class="cal-nav-btn" onclick="shiftMonth(1)">›</button>
       </div>
       <div class="cal-grid" id="calGrid"></div>
     </div>
-
-    <!-- Entry form -->
-    <div class="form-section">
-      <div class="form-title">Log Hours</div>
-      <div class="selected-date-label" id="selectedDateLabel">—</div>
-      <div class="time-row">
-        <div class="field-group">
-          <label>Time In</label>
-          <input type="time" id="inputIn">
-        </div>
-        <div class="field-group">
-          <label>Time Out</label>
-          <input type="time" id="inputOut">
-        </div>
+    <div class="cal-summary">
+      <div class="cal-summary-item">
+        <div class="cal-summary-label">Hours</div>
+        <div class="cal-summary-val" id="calSummaryHrs">0h</div>
       </div>
-      <div class="result-row">
-        <span class="rl">Worked (−1hr lunch)</span>
-        <span class="rv" id="previewHrs">—</span>
+      <div class="cal-summary-item">
+        <div class="cal-summary-label">Gross</div>
+        <div class="cal-summary-val" id="calSummaryPay">¥0</div>
       </div>
-      <button class="btn-save" id="btnSave" onclick="saveEntry()">Save Entry</button>
     </div>
-
-    <!-- Log list -->
-    <div class="log-section">
-      <div class="log-header-row">
-        <h2>All Entries</h2>
-        <span class="week-total" id="weekTotal"></span>
-      </div>
-      <div id="logList"></div>
+    <div class="cal-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Normal</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Holiday worked</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Holiday off</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>OT day</div>
     </div>
+  </div>
+</div>
 
-  </div><!-- /scroll-area -->
-</div><!-- /app -->
-
-<script>
-// ── State ──────────────────────────────────────────────────────────
-let entries = JSON.parse(localStorage.getItem('timelog_v2') || '[]');
-// entries: [{ id, date:'YYYY-MM-DD', timeIn:'HH:MM', timeOut:'HH:MM', hours:float }]
-
-const todayStr = (() => {
-  const d = new Date();
-  return d.getFullYear() + '-' +
-    String(d.getMonth()+1).padStart(2,'0') + '-' +
-    String(d.getDate()).padStart(2,'0');
-})();
-
-let calYear  = new Date().getFullYear();
-let calMonth = new Date().getMonth(); // 0-based
-let selectedDate = todayStr;
-
-// ── Helpers ────────────────────────────────────────────────────────
-function calcHours(tIn, tOut) {
-  const [h1,m1] = tIn.split(':').map(Number);
-  const [h2,m2] = tOut.split(':').map(Number);
-  return ((h2*60+m2) - (h1*60+m1) - 60) / 60;
-}
-
-function fmtHours(h) {
-  if (!h || h <= 0) return '0h';
-  const hrs = Math.floor(h);
-  const mins = Math.round((h - hrs) * 60);
-  return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
-}
-
-function fmtDate(str) {
-  const [y,m,d] = str.split('-');
-  return new Date(+y, +m-1, +d).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
-}
-
-function fmtDateShort(str) {
-  const [y,m,d] = str.split('-');
-  return new Date(+y, +m-1, +d).toLocaleDateString('en-US', {month:'short', day:'numeric'});
-}
-
-function entryForDate(date) {
-  return entries.find(e => e.date === date);
-}
-
-function save() {
-  localStorage.setItem('timelog_v2', JSON.stringify(entries));
-}
-
-// ── Calendar ───────────────────────────────────────────────────────
-function renderCalendar() {
-  const label = new Date(calYear, calMonth).toLocaleDateString('en-US', {month:'long', year:'numeric'});
-  document.getElementById('calMonthLabel').textContent = label;
-
-  const grid = document.getElementById('calGrid');
-  grid.innerHTML = '';
-
-  // Day labels
-  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(dl => {
-    const el = document.createElement('div');
-    el.className = 'cal-day-label';
-    el.textContent = dl;
-    grid.appendChild(el);
-  });
-
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
-
-  // Prev month padding
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const day = daysInPrev - i;
-    const el = document.createElement('div');
-    el.className = 'cal-day empty other-month';
-    el.innerHTML = `<span class="day-num">${day}</span>`;
-    grid.appendChild(el);
-  }
-
-  // Current month days
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = calYear + '-' +
-      String(calMonth+1).padStart(2,'0') + '-' +
-      String(d).padStart(2,'0');
-    const entry = entryForDate(dateStr);
-    const isToday = dateStr === todayStr;
-    const isSelected = dateStr === selectedDate;
-
-    const el = document.createElement('div');
-    el.className = 'cal-day' +
-      (isToday ? ' today' : '') +
-      (isSelected ? ' selected' : '') +
-      (entry ? ' has-entry' : '');
-
-    el.innerHTML = `<span class="day-num">${d}</span>` +
-      (entry ? `<span class="day-hrs">${fmtHours(entry.hours)}</span>` : '');
-
-    el.addEventListener('click', () => selectDate(dateStr));
-    grid.appendChild(el);
-  }
-
-  // Next month padding
-  const total = firstDay + daysInMonth;
-  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
-  for (let d = 1; d <= remaining; d++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day empty other-month';
-    el.innerHTML = `<span class="day-num">${d}</span>`;
-    grid.appendChild(el);
-  }
-
-  updateMonthTotal();
-}
-
-function shiftMonth(dir) {
-  calMonth += dir;
-  if (calMonth < 0)  { calMonth = 11; calYear--; }
-  if (calMonth > 11) { calMonth = 0;  calYear++; }
-  renderCalendar();
-}
-
-function updateMonthTotal() {
-  const monthStr = calYear + '-' + String(calMonth+1).padStart(2,'0');
-  const total = entries
-    .filter(e => e.date.startsWith(monthStr))
-    .reduce((s,e) => s + e.hours, 0);
-  document.getElementById('totalThisMonth').textContent =
-    total > 0 ? fmtHours(total) + ' this month' : '';
-}
-
-// ── Date Selection ─────────────────────────────────────────────────
-function selectDate(dateStr) {
-  selectedDate = dateStr;
-  document.getElementById('selectedDateLabel').textContent = fmtDate(dateStr);
-
-  const existing = entryForDate(dateStr);
-  const btnSave = document.getElementById('btnSave');
-
-  if (existing) {
-    document.getElementById('inputIn').value  = existing.timeIn;
-    document.getElementById('inputOut').value = existing.timeOut;
-    document.getElementById('previewHrs').textContent = fmtHours(existing.hours);
-    btnSave.textContent = 'Update Entry';
-    btnSave.className = 'btn-save saved';
-  } else {
-    document.getElementById('inputIn').value  = '';
-    document.getElementById('inputOut').value = '';
-    document.getElementById('previewHrs').textContent = '—';
-    btnSave.textContent = 'Save Entry';
-    btnSave.className = 'btn-save';
-  }
-
-  renderCalendar(); // re-render to show selection highlight
-  // scroll form into view
-  document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ── Live preview ───────────────────────────────────────────────────
-['inputIn','inputOut'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updatePreview);
-});
-
-function updatePreview() {
-  const tIn  = document.getElementById('inputIn').value;
-  const tOut = document.getElementById('inputOut').value;
-  const el = document.getElementById('previewHrs');
-  if (tIn && tOut) {
-    const h = calcHours(tIn, tOut);
-    el.textContent = h > 0 ? fmtHours(h) : 'Check times';
-    el.style.color = h > 0 ? 'var(--accent2)' : 'var(--danger)';
-  } else {
-    el.textContent = '—';
-    el.style.color = 'var(--accent2)';
-  }
-}
-
-// ── Save ───────────────────────────────────────────────────────────
-function saveEntry() {
-  const tIn  = document.getElementById('inputIn').value;
-  const tOut = document.getElementById('inputOut').value;
-  if (!tIn || !tOut) { alert('Please enter both time in and time out.'); return; }
-  const h = calcHours(tIn, tOut);
-  if (h <= 0) { alert('Time out must be at least 1 hour after time in.'); return; }
-
-  // Remove existing entry for this date if any
-  entries = entries.filter(e => e.date !== selectedDate);
-  entries.push({ id: Date.now(), date: selectedDate, timeIn: tIn, timeOut: tOut, hours: h });
-  entries.sort((a,b) => b.date.localeCompare(a.date));
-
-  save();
-  renderCalendar();
-  renderLog();
-  selectDate(selectedDate); // refresh button state
-}
-
-function deleteEntry(id) {
-  entries = entries.filter(e => e.id !== id);
-  save();
-  renderCalendar();
-  renderLog();
-  selectDate(selectedDate);
-}
-
-// ── Log list ───────────────────────────────────────────────────────
-function renderLog() {
-  const list = document.getElementById('logList');
-
-  if (!entries.length) {
-    list.innerHTML = '<p class="log-empty">No entries yet — tap a date above.</p>';
-    document.getElementById('weekTotal').textContent = '';
-    return;
-  }
-
-  // Week total
-  const now = new Date();
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay());
-  const weekStr = weekStart.toISOString().split('T')[0];
-  const weekHrs = entries.filter(e => e.date >= weekStr).reduce((s,e) => s+e.hours, 0);
-  document.getElementById('weekTotal').textContent =
-    weekHrs > 0 ? `This week: ${fmtHours(weekHrs)}` : '';
-
-  list.innerHTML = entries.map(e => `
-    <div class="log-item">
-      <div>
-        <div class="li-date">${fmtDate(e.date)}</div>
-        <div class="li-times">${e.timeIn} → ${e.timeOut}</div>
+<!-- EARNINGS -->
+<div class="screen" id="screen-earnings">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('home'); renderHome();">← Home</button>
+    <h1>Earnings</h1>
+    <div style="width:60px"></div>
+  </div>
+  <div class="screen-scroll">
+    <div class="earnings-pad">
+      <div class="earnings-hero">
+        <div class="label">Gross Income</div>
+        <div class="earnings-gross" id="earningsGross">¥0</div>
+        <div class="earnings-month" id="earningsMonthLabel"></div>
       </div>
-      <div style="display:flex;align-items:center">
+      <div class="earnings-rows" id="earningsRows"></div>
+      <div class="earnings-stats">
+        <div class="stat-card">
+          <div class="stat-label">Work Days</div>
+          <div class="stat-val" id="earningsWorkDays">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Holidays</div>
+          <div class="stat-val" id="earningsHolidays">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Hrs</div>
+          <div class="stat-val" id="earningsTotalHrs">0h</div>
+        </div>
+      </div>
+      <!-- Net summary (shown when deductions exist) -->
+      <div class="net-summary-card" id="earningsNetRow" style="display:none;">
+        <div class="net-row">
+          <span class="net-label">Gross Income</span>
+          <span class="net-val" id="earningsGross2">—</span>
+        </div>
+        <div class="net-row net-ded">
+          <span class="net-label">Total Deductions</span>
+          <span class="net-val red" id="earningsTotalDed">—</span>
+        </div>
+        <div class="net-row net-final">
+          <span class="net-label">After-Tax Income</span>
+          <span class="net-val green" id="earningsNet">—</span>
+        </div>
+      </div>
+      <button class="btn-secondary" style="margin-top:14px" onclick="showScreen('deductions'); renderDeductions();">
+        🧾 Edit Deductions →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- DEDUCTIONS -->
+<div class="screen" id="screen-deductions">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('home'); renderHome();">← Home</button>
+    <h1>Deductions</h1>
+    <div style="width:60px"></div>
+  </div>
+  <div class="screen-scroll">
+    <div class="settings-pad">
+      <div class="ded-month-label" id="dedMonthLabel">—</div>
+
+      <!-- Pay Rates (moved from Settings) -->
+      <div class="section-card">
+        <div class="section-title">💴 Pay Rates</div>
+        <div id="rowMonthlyBase" class="field">
+          <label>Monthly Base Salary (¥)</label>
+          <input type="number" id="setMonthlyBase" placeholder="e.g. 280000" inputmode="numeric">
+        </div>
+        <div id="rowNormalRate" class="field">
+          <label>Normal Hourly Rate (¥/hr)</label>
+          <input type="number" id="setNormalRate" placeholder="e.g. 1500" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>OT Rate (¥/hr)</label>
+          <input type="number" id="setOtRate" placeholder="e.g. 2200" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>Holiday Rate (¥/hr)</label>
+          <input type="number" id="setHolidayRate" placeholder="e.g. 3000" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>Monthly Commutation 交通費 (¥)</label>
+          <input type="number" id="setCommutation" placeholder="e.g. 20000" inputmode="numeric">
+        </div>
+        <div id="rowOtThreshold" class="field" style="margin-bottom:0">
+          <label>OT Threshold (hours/day)</label>
+          <input type="number" id="setOtThreshold" placeholder="8" inputmode="numeric">
+        </div>
+      </div>
+
+      <!-- Insurance Rates -->
+      <div class="section-card">
+        <div class="section-title">🏥 Insurance Rates (for auto-calculation)</div>
+        <div class="field">
+          <label>Health Insurance Rate 健康保険 (%)</label>
+          <input type="number" id="setHealthRate" placeholder="10.0" step="0.01" inputmode="decimal">
+        </div>
+        <div class="field" style="margin-bottom:8px">
+          <label>Nursing Insurance Rate 介護保険 (%)</label>
+          <input type="number" id="setNursingRate" placeholder="1.82" step="0.01" inputmode="decimal">
+        </div>
+        <div class="toggle-row" style="border-bottom:none;padding:4px 0 0">
+          <label>Nursing Insurance applies (age 40–64)</label>
+          <label class="toggle">
+            <input type="checkbox" id="setNursingEnabled" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Auto-calc preview -->
+      <div class="auto-calc-badge" id="autoCalcBadge">—</div>
+
+      <div class="section-card">
+        <div class="section-title">🏥 Insurance 保険料 <span class="auto-label">auto-calculated</span></div>
+        <div class="field">
+          <label>Health Insurance 健康保険</label>
+          <input type="number" id="ded_healthIns" placeholder="auto" inputmode="numeric" oninput="updateDedTotal()">
+        </div>
+        <div class="field">
+          <label>Nursing Insurance 介護保険</label>
+          <input type="number" id="ded_nursingIns" placeholder="auto" inputmode="numeric" oninput="updateDedTotal()">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Pension Insurance 厚生年金</label>
+          <input type="number" id="ded_pensionIns" placeholder="auto" inputmode="numeric" oninput="updateDedTotal()">
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">💼 Employment 雇用保険 <span class="auto-label">auto-calculated</span></div>
+        <div class="field" style="margin-bottom:0">
+          <label>Unemployment 雇用保険</label>
+          <input type="number" id="ded_unemployment" placeholder="auto" inputmode="numeric" oninput="updateDedTotal()">
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">📋 Tax 税金</div>
+        <div class="field">
+          <label>Income Tax 所得税</label>
+          <input type="number" id="ded_incomeTax" placeholder="e.g. 68320" inputmode="numeric" oninput="updateDedTotal()">
+        </div>
+        <div class="field">
+          <label>Inhabitant Tax 住民税</label>
+          <input type="number" id="ded_inhabitantTax" placeholder="e.g. 46300" inputmode="numeric" oninput="updateDedTotal()">
+        </div>
+        <div class="field">
+          <label>Social Adjust 社会調整</label>
+          <input type="number" id="ded_socialAdjust" placeholder="0" inputmode="numeric" oninput="updateDedTotal()">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Year-End Adj 年末調整</label>
+          <input type="number" id="ded_yearEndAdj" placeholder="0" inputmode="numeric" oninput="updateDedTotal()">
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">➕ Other その他</div>
+        <div class="field" style="margin-bottom:0">
+          <label>Other Deductions その他控除</label>
+          <input type="number" id="ded_otherDeduct" placeholder="0" inputmode="numeric" oninput="updateDedTotal()">
+        </div>
+      </div>
+
+      <!-- Running total -->
+      <div class="ded-total-card">
+        <span class="ded-total-label">Total Deductions</span>
+        <span class="ded-total-val" id="dedTotalDisplay">¥0</span>
+      </div>
+
+      <button class="btn-primary" id="btnSaveDed" onclick="savePayslip()">Save Rates &amp; Deductions</button>
+      <div style="height:8px"></div>
+      <button class="btn-secondary" onclick="showScreen('earnings'); renderEarnings();">← Back to Earnings</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="screen" id="screen-settings">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('home'); renderHome();">← Home</button>
+    <h1>Settings</h1>
+    <div style="width:60px"></div>
+  </div>
+  <div class="screen-scroll">
+    <div class="settings-pad">
+
+      <div class="settings-profile-card">
+        <div class="profile-avatar" id="settingsAvatar">K</div>
         <div>
-          <div class="li-hours">${fmtHours(e.hours)}</div>
-          <div class="li-hrs-lbl">worked</div>
+          <div class="pname" id="settingProfileName">Name</div>
+          <div class="pbadge badge-monthly" id="settingModeBadge">📅 Monthly</div>
         </div>
-        <button class="btn-del" onclick="deleteEntry(${e.id})" title="Delete">✕</button>
+      </div>
+
+
+      <div class="section-card">
+        <div class="section-title">🌗 Theme</div>
+        <div class="toggle-row">
+          <label>Dark Mode</label>
+          <label class="toggle">
+            <input type="checkbox" id="themeToggle" onchange="appTheme=this.checked?'dark':'light';">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">🔤 Font Size</div>
+        <div class="select-group" id="fontSizeChips">
+          <div class="select-chip" data-val="small"  onclick="selectThemeChip('fontSizeChips',this,'appFontSize');">Small</div>
+          <div class="select-chip" data-val="medium" onclick="selectThemeChip('fontSizeChips',this,'appFontSize');">Medium</div>
+          <div class="select-chip" data-val="large"  onclick="selectThemeChip('fontSizeChips',this,'appFontSize');">Large</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">🖱 Button Style</div>
+        <div class="select-group" id="btnStyleChips">
+          <div class="select-chip" data-val="classic"  onclick="selectThemeChip('btnStyleChips',this,'appBtnStyle');">Classic</div>
+          <div class="select-chip" data-val="modern"   onclick="selectThemeChip('btnStyleChips',this,'appBtnStyle');">Modern</div>
+          <div class="select-chip" data-val="colorful" onclick="selectThemeChip('btnStyleChips',this,'appBtnStyle');">Colorful</div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="btnSaveSettings" onclick="saveSettings()">Save Settings</button>
+      <div style="height:10px"></div>
+      <button class="btn-secondary" onclick="if(confirm('Delete this profile and all its data?')){deleteCurrentProfile();}">🗑 Delete Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG ENTRY MODAL -->
+<div class="modal-backdrop" id="logModal" onclick="handleModalBackdropClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2 id="logEntryDate">Today</h2>
+      <button class="modal-close" onclick="closeLogModal()">✕</button>
+    </div>
+    <div class="holiday-toggle-row">
+      <label>🏖 Mark as Holiday</label>
+      <label class="toggle">
+        <input type="checkbox" id="logHoliday">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Time In</label>
+        <select id="logTimeIn" onchange="onTimeInChange()"></select>
+      </div>
+      <div class="field">
+        <label>Time Out</label>
+        <select id="logTimeOut"></select>
       </div>
     </div>
-  `).join('');
+    <div class="field">
+      <label>Lunch Break</label>
+      <select id="logLunch">
+        <option value="30">30 minutes</option>
+        <option value="60" selected>1 hour (default)</option>
+        <option value="90">1 hour 30 min</option>
+        <option value="120">2 hours</option>
+      </select>
+    </div>
+    <div class="log-preview" id="logPreviewRow" onclick="togglePreviewDetail()" style="cursor:pointer;">
+      <div>
+        <span class="log-preview-label">Net Worked</span>
+        <span class="log-preview-hint"> · tap for detail ▾</span>
+      </div>
+      <span class="log-preview-val" id="logPreview">—</span>
+    </div>
+    <div class="preview-detail" id="previewDetail" style="display:none;">
+      <div class="pd-row" id="pdRegular" style="display:none;">
+        <span class="pd-label">Regular</span><span class="pd-val" id="pdRegularVal">—</span>
+      </div>
+      <div class="pd-row" id="pdOT" style="display:none;">
+        <span class="pd-label">OT</span><span class="pd-val" id="pdOTVal">—</span>
+      </div>
+      <div class="pd-row" id="pdHoliday" style="display:none;">
+        <span class="pd-label">Holiday</span><span class="pd-val" id="pdHolidayVal">—</span>
+      </div>
+      <div class="pd-row pd-total">
+        <span class="pd-label">Total Pay</span><span class="pd-val" id="pdTotal">—</span>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="deleteLogEntry()">🗑 Delete</button>
+      <button class="btn-primary"   onclick="saveLogEntry()">Save →</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+<script src="app.js"></script>
+<script>
+/* Time dropdowns */
+function buildTimeOptions() {
+  let opts = '<option value="">-- select --</option>';
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 15) {
+      const label = String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+      opts += `<option value="${label}">${label}</option>`;
+    }
+  }
+  document.getElementById('logTimeIn').innerHTML  = opts;
+  document.getElementById('logTimeOut').innerHTML = opts;
+}
+buildTimeOptions();
+
+function onTimeInChange() {
+  const tIn  = document.getElementById('logTimeIn').value;
+  if (!tIn) return;
+  const autoOut = snapTo15(addMinsToTime(tIn, 9*60));
+  document.getElementById('logTimeOut').value = autoOut;
+  updateLogPreview();
 }
 
-// ── iOS install hint ───────────────────────────────────────────────
-function isIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-}
-function isStandalone() {
-  return window.navigator.standalone === true;
-}
-function dismissHint() {
-  localStorage.setItem('hintDismissed', '1');
-  document.getElementById('installHint').style.display = 'none';
+/* Preview detail toggle */
+let previewDetailOpen = false;
+function togglePreviewDetail() {
+  previewDetailOpen = !previewDetailOpen;
+  document.getElementById('previewDetail').style.display = previewDetailOpen ? 'block' : 'none';
+  document.querySelector('.log-preview-hint').textContent = previewDetailOpen ? ' · tap to close ▴' : ' · tap for detail ▾';
 }
 
-if (isIOS() && !isStandalone() && !localStorage.getItem('hintDismissed')) {
-  document.getElementById('installHint').style.display = 'flex';
+/* Chip selector */
+function selectThemeChip(groupId, el, varName) {
+  document.querySelectorAll('#'+groupId+' .select-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  window[varName] = el.dataset.val;
 }
 
-// ── Service Worker ─────────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
+/* Settings render + save */
+function renderSettings() {
+  if (!currentProfile) return;
+  const av = document.getElementById('settingsAvatar');
+  av.textContent    = currentProfile.name.charAt(0).toUpperCase();
+  av.style.background = currentProfile.color;
+  document.getElementById('settingProfileName').textContent = currentProfile.name;
+  document.getElementById('settingModeBadge').className =
+    'pbadge '+(currentProfile.mode==='monthly'?'badge-monthly':'badge-hourly');
+  document.getElementById('settingModeBadge').textContent =
+    currentProfile.mode==='monthly'?'📅 Monthly':'⏱ Hourly';
+  document.getElementById('themeToggle').checked = appTheme === 'dark';
+  document.querySelectorAll('#fontSizeChips .select-chip').forEach(c =>
+    c.classList.toggle('active', c.dataset.val === appFontSize));
+  document.querySelectorAll('#btnStyleChips .select-chip').forEach(c =>
+    c.classList.toggle('active', c.dataset.val === appBtnStyle));
 }
 
-// ── Init ───────────────────────────────────────────────────────────
-selectDate(todayStr);
-renderLog();
+function saveSettings() {
+  DB.save('tl_theme',    appTheme);
+  DB.save('tl_fontsize', appFontSize);
+  DB.save('tl_btnstyle', appBtnStyle);
+  applyAppearance();
+  const btn = document.getElementById('btnSaveSettings');
+  btn.textContent = '✓ Saved!';
+  setTimeout(() => { btn.textContent = 'Save Settings'; }, 1800);
+}
+
+/* Combined save for Payslip screen (rates + deductions) */
+function savePayslip() {
+  const s = currentProfile.settings;
+  s.normalRate      = parseFloat(document.getElementById('setNormalRate').value)    || 0;
+  s.otRate          = parseFloat(document.getElementById('setOtRate').value)         || 0;
+  s.holidayRate     = parseFloat(document.getElementById('setHolidayRate').value)    || 0;
+  s.monthlyBase     = parseFloat(document.getElementById('setMonthlyBase').value)    || 0;
+  s.commutation     = parseFloat(document.getElementById('setCommutation').value)    || 0;
+  s.otThresholdHrs  = parseFloat(document.getElementById('setOtThreshold').value)    || 8;
+  s.healthInsRate   = parseFloat(document.getElementById('setHealthRate').value)     || 10.0;
+  s.nursingInsRate  = parseFloat(document.getElementById('setNursingRate').value)    || 1.82;
+  s.nursingInsEnabled = document.getElementById('setNursingEnabled').checked;
+  saveProfiles();
+  saveDeductionsForm();
+  renderHome();
+  const btn = document.getElementById('btnSaveDed');
+  btn.textContent = '✓ Saved!';
+  setTimeout(() => { btn.textContent = 'Save Rates & Deductions'; }, 1800);
+}
+
+/* Delete profile */
+function deleteCurrentProfile() {
+  localStorage.removeItem('tl_entries_'+currentProfileId);
+  profiles = profiles.filter(p => p.id !== currentProfileId);
+  saveProfiles();
+  currentProfileId = null; currentProfile = null;
+  showScreen('login'); renderLogin();
+}
+
+/* Modal backdrop */
+function handleModalBackdropClick(e) {
+  if (e.target === document.getElementById('logModal')) closeLogModal();
+}
+
+/* Sync gross2 in net summary */
+const _origRenderEarnings = renderEarnings;
+renderEarnings = function() {
+  _origRenderEarnings();
+  const g = document.getElementById('earningsGross').textContent;
+  const g2 = document.getElementById('earningsGross2');
+  if (g2) g2.textContent = g;
+};
 </script>
 </body>
 </html>
