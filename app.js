@@ -616,55 +616,31 @@ function renderDeductions() {
   const label = new Date(calYear,calMonth).toLocaleDateString('en-US',{month:'long',year:'numeric'});
   document.getElementById('dedMonthLabel').textContent = label;
 
-  // Populate rate fields
+  // Populate rate fields from saved settings
   const s = currentProfile.settings;
   document.getElementById('rowNormalRate').style.display  = currentProfile.mode==='hourly'  ? '' : 'none';
   document.getElementById('rowMonthlyBase').style.display = currentProfile.mode==='monthly' ? '' : 'none';
   document.getElementById('rowOtThreshold').style.display = currentProfile.mode==='hourly'  ? '' : 'none';
-  document.getElementById('setNormalRate').value    = s.normalRate     || '';
-  document.getElementById('setOtRate').value        = s.otRate         || '';
-  document.getElementById('setHolidayRate').value   = s.holidayRate    || '';
-  document.getElementById('setMonthlyBase').value   = s.monthlyBase    || '';
-  document.getElementById('setCommutation').value   = s.commutation    || '';
-  document.getElementById('setOtThreshold').value   = s.otThresholdHrs || 8;
-  document.getElementById('setHealthRate').value    = s.healthInsRate  || 10.0;
-  document.getElementById('setNursingRate').value   = s.nursingInsRate || 1.82;
+  document.getElementById('setNormalRate').value    = s.normalRate      || '';
+  document.getElementById('setOtRate').value        = s.otRate          || '';
+  document.getElementById('setHolidayRate').value   = s.holidayRate     || '';
+  document.getElementById('setMonthlyBase').value   = s.monthlyBase     || '';
+  document.getElementById('setCommutation').value   = s.commutation     || '';
+  document.getElementById('setOtThreshold').value   = s.otThresholdHrs  || 8;
+  document.getElementById('setHealthRate').value    = s.healthInsRate   || 10.0;
+  document.getElementById('setNursingRate').value   = s.nursingInsRate  || 1.82;
   document.getElementById('setNursingEnabled').checked = s.nursingInsEnabled !== false;
 
-  // Auto-calculate insurance based on current month gross
-  const mE = monthEntries(calYear, calMonth);
-  let grossTotal = currentProfile.mode==='monthly' ? (s.monthlyBase||0) : 0;
-  grossTotal += (s.commutation || 0);
-  mE.forEach(e => { const c = calcDay(e, currentProfile); if(c) grossTotal += c.pay; });
-
-  const auto = calcInsurance(currentProfile, grossTotal);
-
-  // Fill auto-calculated fields (only if user hasn't already saved manual values)
-  // If saved value exists use it, otherwise show auto-calc
-  const fillAuto = (fieldId, autoVal, savedVal) => {
-    const el = document.getElementById(fieldId);
-    if (!el) return;
-    el.value = savedVal > 0 ? savedVal : autoVal;
-  };
-
-  fillAuto('ded_pensionIns',   auto.pension,      ded.pensionIns);
-  fillAuto('ded_healthIns',    auto.healthIns,     ded.healthIns);
-  fillAuto('ded_nursingIns',   auto.nursingIns,    ded.nursingIns);
-  fillAuto('ded_unemployment', auto.unemployment,  ded.unemployment);
-
-  // Manual-only fields
+  // Manual-only deduction fields (income tax, inhabitant tax, others)
   document.getElementById('ded_incomeTax').value     = ded.incomeTax     || '';
   document.getElementById('ded_inhabitantTax').value = ded.inhabitantTax || '';
   document.getElementById('ded_socialAdjust').value  = ded.socialAdjust  || '';
   document.getElementById('ded_yearEndAdj').value    = ded.yearEndAdj    || '';
   document.getElementById('ded_otherDeduct').value   = ded.otherDeduct   || '';
 
-  // Show auto-calc preview badge
-  document.getElementById('autoCalcBadge').textContent =
-    `Auto: Pension ${fmtYen(auto.pension)} · Health ${fmtYen(auto.healthIns)} · ` +
-    `Nursing ${fmtYen(auto.nursingIns)} · Unemp ${fmtYen(auto.unemployment)}`;
-
-  updateDedTotal();
+  // Trigger live auto-calc for insurance fields
+  // recalcInsurance is defined in inline script — call via setTimeout to ensure DOM ready
+  setTimeout(() => { if (typeof recalcInsurance === 'function') recalcInsurance(); }, 0);
 }
 
 function updateDedTotal() {
@@ -693,9 +669,6 @@ function saveDeductionsForm() {
   });
   saveDeductions(ym, data);
   renderHome();
-  const btn = document.getElementById('btnSaveDed');
-  btn.textContent = '✓ Saved!';
-  setTimeout(() => { btn.textContent = 'Save Deductions'; }, 1800);
 }
 
 /* ═══════════════════════════════════════

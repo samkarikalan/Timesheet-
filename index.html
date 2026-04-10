@@ -212,11 +212,11 @@
         <div class="section-title">💴 Pay Rates</div>
         <div id="rowMonthlyBase" class="field">
           <label>Monthly Base Salary (¥)</label>
-          <input type="number" id="setMonthlyBase" placeholder="e.g. 280000" inputmode="numeric">
+          <input type="number" id="setMonthlyBase" placeholder="e.g. 280000" inputmode="numeric" oninput="recalcInsurance()">
         </div>
         <div id="rowNormalRate" class="field">
           <label>Normal Hourly Rate (¥/hr)</label>
-          <input type="number" id="setNormalRate" placeholder="e.g. 1500" inputmode="numeric">
+          <input type="number" id="setNormalRate" placeholder="e.g. 1500" inputmode="numeric" oninput="recalcInsurance()">
         </div>
         <div class="field">
           <label>OT Rate (¥/hr)</label>
@@ -228,7 +228,7 @@
         </div>
         <div class="field">
           <label>Monthly Commutation 交通費 (¥)</label>
-          <input type="number" id="setCommutation" placeholder="e.g. 20000" inputmode="numeric">
+          <input type="number" id="setCommutation" placeholder="e.g. 20000" inputmode="numeric" oninput="recalcInsurance()">
         </div>
         <div id="rowOtThreshold" class="field" style="margin-bottom:0">
           <label>OT Threshold (hours/day)</label>
@@ -241,16 +241,16 @@
         <div class="section-title">🏥 Insurance Rates (for auto-calculation)</div>
         <div class="field">
           <label>Health Insurance Rate 健康保険 (%)</label>
-          <input type="number" id="setHealthRate" placeholder="10.0" step="0.01" inputmode="decimal">
+          <input type="number" id="setHealthRate" placeholder="10.0" step="0.01" inputmode="decimal" oninput="recalcInsurance()">
         </div>
         <div class="field" style="margin-bottom:8px">
           <label>Nursing Insurance Rate 介護保険 (%)</label>
-          <input type="number" id="setNursingRate" placeholder="1.82" step="0.01" inputmode="decimal">
+          <input type="number" id="setNursingRate" placeholder="1.82" step="0.01" inputmode="decimal" oninput="recalcInsurance()">
         </div>
         <div class="toggle-row" style="border-bottom:none;padding:4px 0 0">
           <label>Nursing Insurance applies (age 40–64)</label>
           <label class="toggle">
-            <input type="checkbox" id="setNursingEnabled" checked>
+            <input type="checkbox" id="setNursingEnabled" checked onchange="recalcInsurance()">
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -509,7 +509,48 @@ function saveSettings() {
   setTimeout(() => { btn.textContent = 'Save Settings'; }, 1800);
 }
 
-/* Combined save for Payslip screen (rates + deductions) */
+/* Live insurance recalc — reads from input fields, not saved profile */
+function recalcInsurance() {
+  const base         = parseFloat(document.getElementById('setMonthlyBase')?.value)   || currentProfile.settings.monthlyBase || 0;
+  const commutation  = parseFloat(document.getElementById('setCommutation')?.value)   || currentProfile.settings.commutation  || 0;
+  const healthRate   = parseFloat(document.getElementById('setHealthRate')?.value)    || currentProfile.settings.healthInsRate || 10.0;
+  const nursingRate  = parseFloat(document.getElementById('setNursingRate')?.value)   || currentProfile.settings.nursingInsRate || 1.82;
+  const nursingOn    = document.getElementById('setNursingEnabled')?.checked !== false;
+
+  // Build a temp profile snapshot with typed values
+  const tempProfile = {
+    ...currentProfile,
+    settings: { ...currentProfile.settings, monthlyBase: base, commutation, healthInsRate: healthRate, nursingInsRate: nursingRate, nursingInsEnabled: nursingOn }
+  };
+
+  // Recalc gross from entries + typed base + commutation
+  const mE = monthEntries(calYear, calMonth);
+  let grossTotal = currentProfile.mode === 'monthly' ? base : 0;
+  grossTotal += commutation;
+  mE.forEach(e => { const c = calcDay(e, currentProfile); if(c) grossTotal += c.pay; });
+
+  const auto = calcInsurance(tempProfile, grossTotal);
+
+  // Update insurance fields — only if field is empty or was previously auto-filled
+  const autoFill = (id, val) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // Auto-fill if empty or if value matches a previously auto-calculated amount
+    el.value = val;
+  };
+  autoFill('ded_pensionIns',   auto.pension);
+  autoFill('ded_healthIns',    auto.healthIns);
+  autoFill('ded_nursingIns',   auto.nursingIns);
+  autoFill('ded_unemployment', auto.unemployment);
+
+  // Update badge
+  const badge = document.getElementById('autoCalcBadge');
+  if (badge) badge.textContent =
+    `Auto: Pension ${fmtYen(auto.pension)} · Health ${fmtYen(auto.healthIns)} · Nursing ${fmtYen(auto.nursingIns)} · Unemp ${fmtYen(auto.unemployment)}`;
+
+  updateDedTotal();
+}
+
 function savePayslip() {
   const s = currentProfile.settings;
   s.normalRate      = parseFloat(document.getElementById('setNormalRate').value)    || 0;
